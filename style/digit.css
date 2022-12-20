@@ -1,0 +1,84 @@
+body {
+  font-family: "Open Sans", sans-serif;
+  color: #333;
+  background-color: #f5f5f5;
+}
+
+.digit-demo-container {
+  max-width: 800px;
+  margin: 50px auto;
+  background-color: #fff;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.digit-demo-container h3 {
+  font-size: 22px;
+  font-weight: bold;
+  text-align: center;
+  padding: 20px;
+  margin: 0;
+  color: #333;
+  background-color: rgba(42, 160, 189, 0.407);
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+}
+
+.flex-two {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.flex-two div {
+  flex: 1;
+  padding: 20px;
+  text-align: center;
+}
+
+@media screen and (max-width: 640px) {
+  .flex-two div {
+    flex-basis: 100%;
+  }
+}
+
+.canvas-box-wrapper {
+  display: block !important;
+}
+
+#canvas_box {
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+#chart_box {
+  background-color: #fff;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  padding: 10px;
+}
+
+.btn {
+  display: inline-block;
+  font-size: 14px;
+  font-weight: bold;
+  padding: 12px 24px;
+  border: 0;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: #656dd5;
+  color: #fff;
+  transition: all 0.4s;
+}
+
+.btn:hover {
+  background-color: #363dc3;
+}
+
+.prediction-text {
+  font-size: 20px;
+  font-weight: bold;
+  margin-top: 30px;
+}

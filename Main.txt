@@ -1,0 +1,279 @@
+'''
+Handwriting recognition is a type of optical character recognition (OCR) task that involves 
+detecting and recognizing handwritten text in images. There are several approaches that you can use 
+to build a machine learning model for handwriting recognition in Python. Here is one way you can do it:
+
+Collect a dataset of handwritten images and their corresponding text labels. You can either create your own 
+dataset or use a publicly available one.
+Preprocess the images in the dataset by converting them to grayscale and resizing them to a uniform size. 
+You may also want to apply some image enhancement techniques such as thresholding or smoothing to improve the quality of the images.
+Split the dataset into a training set and a test set. The training set will be used to train the machine learning model, 
+while the test set will be used to evaluate the performance of the model.
+Choose a machine learning algorithm and train a model on the training set. Some popular algorithms 
+for handwriting recognition include convolutional neural networks (CNNs), support vector machines (SVMs), 
+and k-nearest neighbors (KNN).
+Test the performance of the model on the test set and fine-tune the model if necessary. You can use metrics 
+such as accuracy, precision, and recall to evaluate the performance of the model.
+Deploy the model in a real-world application. This may involve integrating the model into a larger system or 
+building a standalone application that uses the model to recognize handwriting in images.
+'''
+
+'''
+The code shown here does the following:
+
+Loads a dataset of handwritten images and their corresponding labels from a CSV file.
+Preprocesses the images by converting them to grayscale and scaling them to a range of 0 to 1.
+Splits the dataset into training and test sets.
+Builds a CNN model with two convolutional layers and two fully connected layers.
+Compiles and trains the model using the categorical cross-entropy loss function and the Adam optimizer.
+Evaluates the model on the test set and prints the loss and accuracy.
+'''
+
+
+import numpy as np
+import pandas as pd
+import tensorflow as tf
+from tensorflow.python.keras.callbacks import TensorBoard
+from keras.utils import to_categorical
+from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense
+from keras.models import Sequential
+from sklearn.model_selection import train_test_split
+import datetime
+# Load the dataset and preprocess the images
+'''These lines of code read in a dataset from a CSV file, extract the features and labels, and preprocess the data.
+
+The first line uses the read_csv function from the pandas library to read the CSV file into a pandas DataFrame.
+
+The second line uses the iloc indexer to extract the features from the DataFrame, 
+and the values attribute to convert them to a numpy array. The reshape method is then used to reshape the array into a 4D tensor
+with shape (num_samples, height, width, channels). In this case, the num_samples is determined automatically by the reshape method, 
+and the height, width, and channels are set to 28, 28, and 1, respectively. The 1: slice notation is used to select 
+all columns except the first one (which corresponds to the labels).
+
+More on the tensor channels: 
+
+The number of channels in a tensor is an important consideration when building and training deep learning models, 
+as it determines the number of filters that the model needs to learn in order to extract features from the data.
+
+The -1 value for the first dimension allows the tensor shape to be inferred from the other dimensions. In this case, 
+the shape of the tensor will be (num_samples, 28, 28, 1), where num_samples is determined automatically by the 
+reshape method based on the size of the input array and the other dimensions.
+The use of the -1 value can be useful when you want to reshape an array but you don't know the exact number of samples ahead of time. 
+By specifying -1 for the first dimension, you can let numpy infer the size of this dimension based on the 
+size of the input array and the other dimensions. This can be particularly useful when you are working with 
+large datasets and don't want to have to manually calculate the number of samples.
+It is important to note that the -1 value can only be used for one of the dimensions of the tensor, 
+as it is used to infer the size of that dimension based on the size of the input array and the other dimensions.
+
+So the tensor will have num_samples samples, each with a height of 28, a width of 28, and 1 channel. 
+The 1 value for the last dimension indicates that the data has 1 channel, which could be interpreted as grayscale or black and white.
+
+The third line applies feature scaling to the features by dividing them by 255.0. The value 255 is used 
+because it is the maximum possible value for a pixel in an 8-bit grayscale image or a 24-bit RGB image.
+This scales the features to the range [0, 1], which can help the model converge faster during training.
+Feature scaling is a common preprocessing step in machine learning, as it can help to standardize the range of the 
+features and prevent any one feature from dominating the others. There are various ways to perform feature scaling, 
+and dividing by 255.0 is one common method for scaling pixel values in image data. This scales the pixel values
+to the range [0, 1], which can help the model converge faster during training and can also improve the 
+model's generalization performance.
+It is also important to note that the features are being cast to the float32 data type in this line of code. 
+This is because most deep learning models expect the input data to be in floating point format, and the float32 data type 
+is a commonly used representation for floating point numbers.
+Overall, this line of code scales the features to the range [0, 1] and casts them to the float32 data type, 
+which is a common preprocessing step for preparing image data for use with deep learning models.
+
+The fourth line uses the to_categorical function from the Keras API to convert the labels to 
+a one-hot encoded representation. This is necessary because the labels are integer values, but the model will 
+expect them to be in a one-hot encoded form. The to_categorical function takes an integer array and 
+returns a binary array with a 1 in the position corresponding to the original value and 0s in all other positions.'''
+
+df = pd.read_csv("mnist_dataset.csv")
+X = df.iloc[:, 1:].values.reshape(-1, 28, 28, 1)
+X = X.astype("float32") / 255.0
+y = to_categorical(df.iloc[:, 0])
+
+# Split the dataset into training and test sets
+'''This line of code uses the train_test_split function from the scikit-learn library 
+to split the features and labels into training and test sets.
+
+The train_test_split function takes four arguments:
+
+X: This is a numpy array containing the features.
+y: This is a numpy array containing the labels.
+test_size: This specifies the size of the test set, as a fraction of the total dataset. 
+            In this case, the test set will be 25% of the total dataset.
+random_state: This specifies the random seed to use when shuffling the data before 
+            splitting it into the train and test sets. This is optional and is used to ensure 
+            that the same split is obtained each time the function is called with the same random seed.
+
+The train_test_split function returns four arrays:
+
+X_train: This is a numpy array containing the training data.
+X_test: This is a numpy array containing the test data.
+y_train: This is a numpy array containing the training labels.
+y_test: This is a numpy array containing the test labels.
+'''
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25)
+
+# Build the CNN model
+'''The code creates a Sequential model, which is a linear stack of layers. 
+The model is then built by adding a series of layers to it.
+
+The first layer is a Conv2D layer, which applies a 2D convolution operation to the input data. 
+The convolution is applied using a set of filters (also known as kernels), which are represented by a tensor of weights. 
+The convolution operation involves sliding these filters across the input data, applying the dot product 
+between the filter and the input at each position, and producing an output feature map. 
+The kernel_size parameter specifies the size of the filters, and the input_shape parameter 
+specifies the shape of the input data. In this case, the input data is a 28x28x1 image, where the 1 
+corresponds to the number of channels (e.g., grayscale or RGB). The activation parameter specifies 
+the activation function to use, which is set to "relu" (rectified linear unit) in this case.
+The Conv2D layer takes the following arguments:
+32: This is the number of filters to use in the convolutional layer. The filters are learned by the model 
+during training and are used to extract features from the input data.
+kernel_size: This specifies the size of the filters to use in the convolutional layer. In this case, the filters are 3x3.
+activation: This specifies the activation function to use for the output of the convolutional layer. In this case, 
+the relu function is used. The activation function is applied elementwise to the output of the convolutional layer 
+and determines the output of each neuron in the layer.
+input_shape: This specifies the shape of the input data. In this case, the input data has a shape of (28, 28, 1), 
+which corresponds to a 28x28 image with 1 channel (e.g., grayscale).
+The 2D convolutional layer is a type of neural network layer that is commonly used in image classification and other image 
+processing tasks. It slides a small window (called a kernel or filter) over the input image and applies a set of 
+mathematical operations to each subregion to extract features from the input. The resulting feature map is then passed 
+through an activation function, which introduces non-linearity to the model and helps it learn more complex patterns in the data.
+In this case, the ReLU activation function will replace all negative values in the feature map with 0, while leaving 
+positive values unchanged. This helps to introduce sparsity to the model and improve its training speed.
+
+The second layer is a MaxPooling2D layer, which applies a max pooling operation to the output of the previous layer. 
+Max pooling is a down-sampling operation that reduces the size of the input by taking the maximum value over a set of adjacent pixels. 
+This is done by applying a max filter on the input, where the maximum value in each window of the filter is taken and used as the output value.
+The pool_size parameter specifies the size of the window to use for the max filter. For example, a pool_size of (2, 2) 
+would apply a 2x2 max filter over the input, resulting in a down-sampled output with half the spatial dimensions (height and width) of the input.
+The pool_size parameter can be used to control the spatial resolution of the output image, as well as the number of parameters in the model. 
+A larger pool_size results in a down-sampled output with lower spatial resolution, but fewer parameters in the model. 
+This can help to prevent overfitting and make the model more efficient.
+
+The third and fourth layers are similar to the first and second layers, but with 64 filters instead of 32.
+
+The fifth layer is a Flatten layer, which flattens the output of the previous layer into a one-dimensional tensor.
+The Flatten layer is a layer in a neural network that flattens the input tensor into a single vector. It is often used after 
+the output of a convolutional layer or max pooling layer, as these layers produce multi-dimensional output with a shape that is not 
+compatible with the fully connected (dense) layers that typically follow them in a neural network.
+For example, if the input to the Flatten layer has shape (num_samples, height, width, channels), 
+the output of the Flatten layer will have shape (num_samples, height * width * channels).
+The Flatten layer is useful because it allows you to use the output of a convolutional or pooling layer as the input 
+to a dense layer, which is a fully connected layer that requires a 1D input. Without the Flatten layer, the output of the 
+convolutional or pooling layer would have a multi-dimensional shape that is not compatible with the dense layer.
+Using the Flatten layer allows you to preserve the spatial structure of the input while still being able to use it as input 
+to a dense layer, which can learn more complex relationships between the input features. This can be particularly useful for tasks 
+such as image classification, where the spatial structure of the input is important for understanding the content of the image.
+In addition, using the Flatten layer can help to reduce the number of parameters in your model, as it reduces the number of input 
+features by flattening the multi-dimensional output of the convolutional or pooling layers into a single vector. This can help 
+to prevent overfitting, as a model with fewer parameters is less prone to overfitting on the training data.
+
+The sixth layer is a Dense layer, which is a fully connected layer in a neural network. It takes an input tensor and 
+applies a linear transformation to it, followed by an optional activation function.
+The Dense layer has 128 units and is using the relu activation function. The number of units in the layer determines the 
+number of output dimensions of the layer, and the activation function determines how the output of the layer is transformed.
+The relu activation function, also known as the rectified linear unit, is a common choice for hidden layers in a neural network. 
+It applies the function f(x) = max(0, x) element-wise to the output of the linear transformation, resulting in an 
+output tensor with the same shape as the input. The relu activation function is widely used because it has been shown 
+to improve the training speed and performance of deep learning models.
+Dense layers are often used in the final stages of a neural network, after the output of convolutional or pooling layers 
+has been processed and flattened into a single vector. The dense layers can then learn more complex relationships between 
+the input features, allowing the model to make more accurate predictions.
+For example, in an image classification task, a convolutional neural network (CNN) might be used to extract features 
+from the input image, such as edges, shapes, and textures. These features are then processed by pooling layers and 
+flattened into a single vector, which is then used as input to a dense layer. The dense layer can then learn more complex 
+relationships between the input features, allowing the model to classify the image based on its content.
+
+The final layer is also a Dense layer, but with 10 units and an "softmax" activation function. 
+The softmax activation function is used for classification tasks, as it converts the output of the layer 
+into a probability distribution over the possible classes. The softmax function has the form f(x) = exp(x) / sum(exp(x)), 
+where x is the input and exp is the exponentiation function. The output of the softmax function is a vector of values 
+between 0 and 1 that sum to 1, representing the probability of each class.
+
+
+
+Overall, this CNN model has a structure that consists of two pairs of convolutional and max pooling layers, 
+followed by a fully-connected layer and an output layer. It is designed to classify images into one of 
+10 classes based on the features learned by the convolutional and fully-connected layers.'''
+
+model = Sequential()
+model.add(Conv2D(32, kernel_size=(3, 3), activation="relu", input_shape=(28, 28, 1)))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Conv2D(64, kernel_size=(3, 3), activation="relu"))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Flatten())
+model.add(Dense(128, activation="relu"))
+model.add(Dense(10, activation="softmax"))
+
+# Compile and train the model
+'''These lines of code compile and train the CNN model that was defined in the previous code snippet.
+
+The compile method configures the model for training. It takes three arguments:
+
+loss: This specifies the loss function to use during training. The loss function measures the difference 
+between the model's predicted output and the true output, and is used to update the model's weights 
+in order to minimize the loss. In this case, the loss function is "categorical_crossentropy", which is a 
+common choice for classification tasks with more than two classes. It measures the distance between the predicted 
+probability distribution over the classes and the true distribution.
+
+optimizer: This specifies the optimization algorithm to use during training. The optimization algorithm 
+updates the model's weights based on the gradients of the loss function. In this case, the optimization algorithm is "adam",
+which is a popular gradient-based optimization algorithm that adaptively adjusts the learning rate.
+
+metrics: This specifies the metrics to track during training. The metrics are used to evaluate the model's performance 
+on the training and validation datasets. In this case, the metric is "accuracy", which is the fraction of correct 
+predictions made by the model.
+'''
+model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
+
+#Setting up log directory for Tensorboard
+'''
+To run tensorboard type following in the terminal: 
+tensorboard --logdir logs/fit
+'''
+log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+
+'''
+The fit method trains the model on the training data. It takes several arguments:
+
+X_train: This is a numpy array containing the training data. It should have the shape 
+(num_samples, height, width, channels), where num_samples is the number of samples (i.e., images), 
+height and width are the dimensions of the images, and channels is the number of channels (e.g., 1 for grayscale, 3 for RGB).
+
+y_train: This is a numpy array containing the training labels. It should have the shape 
+(num_samples, num_classes), where num_classes is the number of classes.
+
+epochs: This specifies the number of epochs to train the model for. An epoch is a single pass through the entire training dataset.
+
+batch_size: This specifies the number of samples to include in each batch. 
+The model's weights are updated based on the gradients computed from each batch.
+
+callbacks: This is used by TensorBoard to store the logs in order to visualize the neural network
+'''
+model.fit(X_train, y_train, epochs=10, batch_size=32, callbacks=[tensorboard_callback])
+
+# Evaluate the model on the test set
+'''This line of code evaluates the CNN model on a test dataset using the evaluate method. 
+The evaluate method takes two arguments:
+
+X_test: This is a numpy array containing the test data. It should have the same shape as the training data 
+(i.e., (num_samples, height, width, channels)).
+
+y_test: This is a numpy array containing the test labels. It should have the same shape as the training labels 
+(i.e., (num_samples, num_classes)).
+
+The evaluate method returns the loss and the specified metric (in this case, accuracy) on the test dataset.
+ The loss is computed using the loss function that was specified in the compile method. 
+ The accuracy is the fraction of correct predictions made by the model on the test dataset.
+
+The evaluate method is typically used to evaluate the model's performance on a hold-out test dataset, 
+in order to get a sense of how well the model generalizes to new data. It is important to evaluate the model 
+on a test dataset in order to get an unbiased estimate of its performance, as the model may have overfitted to the training data.'''
+
+loss, accuracy = model.evaluate(X_test, y_test)
+print("Loss:", loss)
+print("Accuracy:", accuracy)
