@@ -59,3 +59,6 @@ model.summary()
 # Save the entire model as a SavedModel.
 model.save('saved_model')
 tfjs.converters.save_keras_model(model, 'models_tfjs')
+
+#Tensorboard: tensorboard --logdir logs/fit
+
