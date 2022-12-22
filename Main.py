@@ -46,8 +46,18 @@ cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
                                                  save_weights_only=True,
                                                  verbose=1)
 
-
+# Train the model 
 model.fit(X_train, y_train, epochs=10, batch_size=32, callbacks=[tensorboard_callback, cp_callback])
+
+# Make predictions on the test set
+predictions = model.predict(X_test)
+
+# Calculate the confusion matrix
+confusion_matrix = tf.math.confusion_matrix(labels=y_test.argmax(axis=1), predictions=predictions.argmax(axis=1), num_classes=10)
+
+# Convert the confusion matrix to a tensor and write it to TensorBoard as an image summary
+confusion_matrix_tensor = tf.convert_to_tensor(confusion_matrix, np.int32)
+tf.summary.image("Confusion Matrix", confusion_matrix_tensor, max_outputs=1)
 
 # Evaluate the model on the test set
 loss, accuracy = model.evaluate(X_test, y_test)
