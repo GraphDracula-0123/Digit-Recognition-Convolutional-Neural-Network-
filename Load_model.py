@@ -1,11 +1,19 @@
 import tensorflow as tf
 import pandas as pd
 from keras.utils import to_categorical
+from tensorflow.python.keras.callbacks import TensorBoard
+from keras.utils import to_categorical
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+import tensorflow as tf
+
+
 
 new_model = tf.keras.models.load_model('saved_model/my_model')
 
 # Check its architecture
-new_model.summary()
+#new_model.summary()
 
 # Evaluate the restored model
 df = pd.read_csv("mnist_test.csv")
@@ -15,4 +23,7 @@ test_labels = to_categorical(df.iloc[:, 0])
 
 loss, acc = new_model.evaluate(test_images, test_labels, verbose=0)
 print('Restored model accuracy: {:5.2f}%'.format(100 * acc))
-print(new_model.predict(test_images).shape) 
+#print(new_model.predict(test_images).shape) 
+
+
+
