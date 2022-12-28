@@ -8,11 +8,6 @@ var canvasLineWidth = 10;
 var canvasBackgroundColor = "black";
 var canvasId = "canvas";
 
-var horizontal = new Array();
-var vertical = new Array();
-var drag_mouse = new Array();
-var drawing;
-
 document.getElementById("chart_box").innerHTML = "";
 document.getElementById("chart_box").style.display = "none";
 
@@ -93,10 +88,15 @@ $("#clear-button").click(async function () {
 });
 
 async function loadModel() {
+  console.log("model loading..");
+
   // clear the model variable
   model = undefined;
+
   // load the model using a HTTPS request (where you have stored your model files)
   model = await tf.loadLayersModel("models_tfjs/model.json");
+
+  console.log("model loaded..");
 }
 
 loadModel();
@@ -116,6 +116,8 @@ function preprocessCanvas(image) {
 
 $("#predict-button").click(async function () {
   // get image data from canvas
+  var imageData = canvas.toDataURL();
+
   // preprocess canvas
   let tensor = preprocessCanvas(canvas);
 
@@ -153,10 +155,14 @@ function loadChart(label, data, modelSelected) {
         },
       ],
     },
+
+    // Configuration options go here
+    options: {},
   });
 }
 
 function displayChart(data) {
+  var select_model = document.getElementById("select_model");
   var select_option = "CNN";
 
   label = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];

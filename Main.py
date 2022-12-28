@@ -42,7 +42,7 @@ model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accur
 log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
-# Save model for later
+# Save model parameters for later
 checkpoint_path = "training_1/cp.ckpt"
 checkpoint_dir = os.path.dirname(checkpoint_path)
 
@@ -86,19 +86,10 @@ def plot_confusion_matrix(cm, class_names):
 
 # Create log directory
 logdir = "logs/image/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-
-# Define a TensorBoard callback. Use the log_dir parameter
-# to specify the path to the directory where you want to save the
-# log files to be parsed by TensorBoard.
 tensorboard_callback = keras.callbacks.TensorBoard(log_dir = logdir, histogram_freq = 1)
-
 file_writer_cm = tf.summary.create_file_writer(logdir + '/cm')    
 
 def plot_to_image(figure):
-    """
-    Converts the matplotlib plot specified by 'figure' to a PNG image and
-    returns it. The supplied figure is closed and inaccessible after this call.
-    """
     
     buf = io.BytesIO()
     
@@ -137,8 +128,6 @@ def log_confusion_matrix(epoch, logs):
     # Log the confusion matrix as an image summary.
     with file_writer_cm.as_default():
         tf.summary.image("Confusion Matrix", cm_image, step=epoch)
-
-
 
 # Define the per-epoch callback.
 cm_callback = keras.callbacks.LambdaCallback(on_epoch_end=log_confusion_matrix)
